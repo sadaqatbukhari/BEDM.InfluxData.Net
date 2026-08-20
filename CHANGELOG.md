@@ -1,5 +1,11 @@
 # Change Log
 
+## Unreleased
+
+- added the InfluxDB 1.8+ v2-compatible time-range and predicate delete API
+- added explicit InfluxDB v1.8 and v1.12 version options without changing existing enum values
+- preserved the original client and request-client interfaces through additive v2 contracts
+
 ## [v8.0.1](https://www.nuget.org/packages/InfluxData.Net/8.0.1) (2017-10-11)
 - bugfixes
 
