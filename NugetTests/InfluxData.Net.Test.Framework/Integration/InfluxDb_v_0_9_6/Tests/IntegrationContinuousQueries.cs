@@ -39,7 +39,7 @@ namespace InfluxData.Net.Integration.InfluxDb.Tests
         }
 
         [Fact(Skip = "Test not applicable for this InfluxDB version")]
-        public void DeleteContinuousQuery_OnNonExistingCq_ShouldThrow()
+        public void DeleteContinuousQuery_OnNonExistingCq_v_0_9_6_ShouldThrow()
         {
             return;
         }
