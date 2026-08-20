@@ -1,4 +1,5 @@
-﻿using System;
+﻿using InfluxData.Net.InfluxDb.Models.Responses;
+using System;
 using System.Collections.Generic;
 
 namespace InfluxData.Net.InfluxDb.Models
@@ -35,5 +36,11 @@ namespace InfluxData.Net.InfluxDb.Models
         /// Explicit point timestamp (optional).
         /// </summary>
         public DateTime? Timestamp { get; set; }
+
+        /// <summary>
+        /// Information of Retention policy to which this point belongs To.
+        /// THIS INFORMATION SHOULD IDEALLY BE USED BY <see cref="BasicClientModule.WriteAsync">WriteAsycn</see> BUT CURRENTLY NOT USED/>
+        /// </summary>
+        public RetentionPolicy RetentionPolicyInfo { get; set; }
     }
 }
