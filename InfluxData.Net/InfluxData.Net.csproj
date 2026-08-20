@@ -1,15 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <FileVersion>1.0.1.0</FileVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<AssemblyVersion>2.0.0.0</AssemblyVersion>
+		<FileVersion>2.0.0.0</FileVersion>
+		<Author>Sadaqat Hussain</Author>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\InfluxData.Net.Common\InfluxData.Net.Common.csproj" />
-    <ProjectReference Include="..\InfluxData.Net.InfluxDb\InfluxData.Net.InfluxDb.csproj" />
-    <ProjectReference Include="..\InfluxData.Net.Kapacitor\InfluxData.Net.Kapacitor.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\InfluxData.Net.Common\InfluxData.Net.Common.csproj" />
+		<ProjectReference Include="..\InfluxData.Net.InfluxDb\InfluxData.Net.InfluxDb.csproj" />
+		<ProjectReference Include="..\InfluxData.Net.Kapacitor\InfluxData.Net.Kapacitor.csproj" />
+	</ItemGroup>
 
 </Project>
