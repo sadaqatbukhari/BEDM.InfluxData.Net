@@ -4,6 +4,12 @@
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyVersion>1.0.1.0</AssemblyVersion>
     <FileVersion>1.0.1.0</FileVersion>
+    <PackageId>InfluxData.Net_Latest</PackageId>
+    <Version>1.0.1</Version>
+    <Authors>InfluxData.Net Contributors</Authors>
+    <Description>InfluxData.Net is a portable .NET library for InfluxDB and Kapacitor.</Description>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
