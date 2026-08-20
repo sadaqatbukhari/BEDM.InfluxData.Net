@@ -8,12 +8,12 @@ on:
 
 permissions:
   contents: read
-  id-token: write  # Required for OIDC authentication with NuGet.org
+  id-token: write  # Enables OIDC token issuance for NuGet Trusted Publishing
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    environment: productoin  # Must match the environment scope configured on NuGet.org
+    environment: production  # Matches the environment specified in your NuGet Trusted Publisher configuration
 
     steps:
       - name: Checkout
