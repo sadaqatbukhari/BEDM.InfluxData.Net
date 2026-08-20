@@ -11,7 +11,7 @@ using InfluxData.Net.InfluxDb.ClientSubModules;
 
 namespace InfluxData.Net.InfluxDb
 {
-    public class InfluxDbClient : IInfluxDbClient
+    public class InfluxDbClient : IInfluxDbClientV2
     {
         private IInfluxDbRequestClient _requestClient;
         public IInfluxDbRequestClient RequestClient
@@ -76,6 +76,12 @@ namespace InfluxData.Net.InfluxDb
             get { return _userClientModule.Value; }
         }
 
+        private Lazy<IDeleteClientModule> _deleteClientModule;
+        public IDeleteClientModule Delete
+        {
+            get { return _deleteClientModule.Value; }
+        }
+
         /// <summary>
         /// InfluxDb client.
         /// </summary>
@@ -115,6 +121,8 @@ namespace InfluxData.Net.InfluxDb
             switch (configuration.InfluxVersion)
             {
                 case InfluxDbVersion.Latest:
+                case InfluxDbVersion.v_1_12:
+                case InfluxDbVersion.v_1_8:
                 case InfluxDbVersion.v_1_3:
                     this.BootstrapInfluxDbLatest(configuration);
                     break;
@@ -137,6 +145,17 @@ namespace InfluxData.Net.InfluxDb
                 default:
                     throw new ArgumentOutOfRangeException("influxDbClientConfiguration", String.Format("Unknown version {0}.", configuration.InfluxVersion));
             }
+
+            _deleteClientModule = SupportsV2Delete(configuration.InfluxVersion)
+                ? new Lazy<IDeleteClientModule>(() => new DeleteClientModule(_requestClient), true)
+                : new Lazy<IDeleteClientModule>(() => new UnsupportedDeleteClientModule(configuration.InfluxVersion), true);
+        }
+
+        private static bool SupportsV2Delete(InfluxDbVersion version)
+        {
+            return version == InfluxDbVersion.Latest
+                || version == InfluxDbVersion.v_1_8
+                || version == InfluxDbVersion.v_1_12;
         }
 
         /// <summary>

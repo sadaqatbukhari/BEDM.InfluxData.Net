@@ -11,5 +11,6 @@
         public const string Chunked = "chunked";
         public const string ChunkSize = "chunk_size";
         public const string Epoch = "epoch";
+        public const string Bucket = "bucket";
     }
 }

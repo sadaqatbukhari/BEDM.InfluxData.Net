@@ -35,7 +35,7 @@ namespace InfluxData.Net.Integration.InfluxDb.Tests
 
             Func<Task> act = async () => { await _fixture.Sut.ContinuousQuery.CreateContinuousQueryAsync(cq); };
 
-            act.ShouldThrow<InfluxDataApiException>();
+            await act.Should().ThrowAsync<InfluxDataApiException>();
         }
 
         [Fact(Skip = "Test not applicable for this InfluxDB version")]

@@ -44,7 +44,7 @@ You can download the [InfluxData.Net Nuget](https://www.nuget.org/packages/Influ
 To use InfluxData.Net InfluxDbClient you must first create an instance of `InfluxDbClient`:
 
 ```cs
-var influxDbClient = new InfluxDbClient("http://yourinfluxdb.com:8086/", "username", "password", InfluxDbVersion.v_1_3);
+var influxDbClient = new InfluxDbClient("http://yourinfluxdb.com:8086/", "username", "password", InfluxDbVersion.v_1_12);
 ```
 
 Additional, optional params for InfluxDbClient are a custom `HttpClient` if you think you need control over it, and `throwOnWarning` which will throw an `InfluxDataWarningException` if the InfluxDb API returns a warning as a part of the response. That should preferably be used only for debugging purposes.
@@ -67,6 +67,8 @@ If needed, a custom HttpClient can be used for making requests. Simply pass it i
   - _[QueryChunkedAsync()](#querychunkedasync)_
   - _[MultiQueryAsync()](#multiqueryasync)_
   - _[MultiQueryChunkedAsync()](#multiquerychunkedasync)_
+- [Delete](#delete-module-influxdb-18)
+  - _[DeleteAsync()](#deleteasync)_
 - [Database](#database-module)
   - _[CreateDatabaseAsync()](#createdatabaseasync)_
   - _[GetDatabasesAsync()](#getdatabasesasync)_
@@ -226,6 +228,30 @@ var response = await influxDbClient.Client.MultiQueryAsync(queries, "yourDbName"
 #### MultiQueryChunkedAsync
 
 Check the usage [here](https://github.com/pootzko/InfluxData.Net/pull/39#issuecomment-287722949).
+
+### Delete Module (InfluxDB 1.8+)
+
+The delete module uses InfluxDB's v2-compatible `POST /api/v2/delete` endpoint to delete points by
+time range, measurement, and tag predicate. The start is inclusive and the stop is exclusive. Both
+the database and retention policy are required.
+
+#### DeleteAsync
+
+```cs
+var response = await influxDbClient.Delete.DeleteAsync(new DeleteRequest
+{
+    Database = "yourDbName",
+    RetentionPolicy = "autogen",
+    Start = DateTimeOffset.UtcNow.AddDays(-7),
+    Stop = DateTimeOffset.UtcNow,
+    Predicate = "_measurement=\"temperature\" AND location=\"west\""
+});
+```
+
+For InfluxDB 1.8+, the client's username and password are sent using the required
+`Authorization: Token username:password` header. To use an InfluxDB 2.x API token instead, pass it
+as the optional second argument to `DeleteAsync`. Clients configured with an explicit version older
+than 1.8 throw `NotSupportedException` before sending a request.
 
 ### Database Module
 

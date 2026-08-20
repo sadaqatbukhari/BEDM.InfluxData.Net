@@ -64,5 +64,6 @@ namespace InfluxData.Net.InfluxDb.RequestClients
             HttpContent content = null,
             bool includeAuthToQuery = true,
             bool headerIsBody = false);
+
     }
 }

@@ -45,13 +45,32 @@ namespace InfluxData.Net.Common.RequestClients
 
         #region Request Base
 
-        public async Task<IInfluxDataApiResponse> RequestAsync(
+        public Task<IInfluxDataApiResponse> RequestAsync(
             HttpMethod method,
             string path,
             IDictionary<string, string> requestParams = null,
             HttpContent content = null,
             bool includeAuthToQuery = true,
             bool headerIsBody = false)
+        {
+            return RequestWithHeadersAsync(
+                method,
+                path,
+                requestParams,
+                content,
+                includeAuthToQuery,
+                headerIsBody,
+                null);
+        }
+
+        public async Task<IInfluxDataApiResponse> RequestWithHeadersAsync(
+            HttpMethod method,
+            string path,
+            IDictionary<string, string> requestParams,
+            HttpContent content,
+            bool includeAuthToQuery,
+            bool headerIsBody,
+            IDictionary<string, string> requestHeaders)
         {
             var response = await RequestInnerAsync(
                 HttpCompletionOption.ResponseHeadersRead,
@@ -60,7 +79,8 @@ namespace InfluxData.Net.Common.RequestClients
                 path,
                 requestParams,
                 content,
-                includeAuthToQuery).ConfigureAwait(false);
+                includeAuthToQuery,
+                requestHeaders).ConfigureAwait(false);
 
             string responseContent = String.Empty;
 
@@ -99,10 +119,11 @@ namespace InfluxData.Net.Common.RequestClients
             string path,
             IDictionary<string, string> extraParams = null,
             HttpContent content = null,
-            bool includeAuthToQuery = true)
+            bool includeAuthToQuery = true,
+            IDictionary<string, string> requestHeaders = null)
         {
             var uri = BuildUri(path, extraParams, includeAuthToQuery);
-            var request = BuildRequest(method, content, uri);
+            var request = BuildRequest(method, content, uri, requestHeaders);
 
 #if DEBUG
             Debug.WriteLine("[Request] {0}", request.ToJson());
@@ -142,11 +163,24 @@ namespace InfluxData.Net.Common.RequestClients
             return urlBuilder;
         }
 
-        private HttpRequestMessage BuildRequest(HttpMethod method, HttpContent content, StringBuilder urlBuilder)
+        private HttpRequestMessage BuildRequest(
+            HttpMethod method,
+            HttpContent content,
+            StringBuilder urlBuilder,
+            IDictionary<string, string> requestHeaders)
         {
             var request = new HttpRequestMessage(method, urlBuilder.ToString());
             request.Headers.Add("User-Agent", _userAgent);
             request.Headers.Add("Accept", "application/json");
+
+            if (requestHeaders != null)
+            {
+                foreach (var header in requestHeaders)
+                {
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+            }
+
             request.Content = content;
 
             return request;

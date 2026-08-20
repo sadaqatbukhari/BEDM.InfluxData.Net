@@ -11,6 +11,10 @@ namespace InfluxData.Net.Common.Enums
         v_0_9_6,
         v_0_9_5,
         v_0_9_2,
-        v_0_8_x
+        v_0_8_x,
+
+        // New values are appended to preserve the numeric values of existing members.
+        v_1_8,
+        v_1_12
     }
 }

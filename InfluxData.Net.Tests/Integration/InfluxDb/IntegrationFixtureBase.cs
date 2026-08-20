@@ -61,14 +61,14 @@ namespace InfluxData.Net.Integration.InfluxDb
 
             var response = await this.Sut.Client.QueryAsync(String.Format("select * from \"{0}\" group by * order by time desc", expectedPoint.Name), this.DbName);
             response.Should().NotBeNull();
-            response.Count().Should().BeGreaterOrEqualTo(1);
+            response.Count().Should().BeGreaterThanOrEqualTo(1);
 
             var serie = response.FirstOrDefault(p => ((DateTime)p.Values[0][0]).ToUnixTime(precision) == ((DateTime)expectedPoint.Timestamp).ToUnixTime(precision));
             serie.Should().NotBeNull();
             serie.Name.Should().Be(expectedSerie.Name);
             serie.Tags.Count.Should().Be(expectedSerie.Tags.Count);
-            serie.Tags.ShouldAllBeEquivalentTo(expectedSerie.Tags);
-            serie.Columns.ShouldAllBeEquivalentTo(expectedSerie.Columns);
+            serie.Tags.Should().BeEquivalentTo(expectedSerie.Tags);
+            serie.Columns.Should().BeEquivalentTo(expectedSerie.Columns);
             serie.Columns.Count().Should().Be(expectedSerie.Columns.Count());
             serie.Values[0].Count().Should().Be(expectedSerie.Values[0].Count());
 

@@ -160,7 +160,7 @@ namespace InfluxData.Net.Integration.InfluxDb.Tests
         }
 
         [Fact]
-        public virtual void ClientWrite_OnPointsWithMissingFields_ShouldThrowException()
+        public virtual async Task ClientWrite_OnPointsWithMissingFields_ShouldThrowException()
         {
             var points = _fixture.MockPoints(1);
             points.Single().Timestamp = null;
@@ -168,15 +168,15 @@ namespace InfluxData.Net.Integration.InfluxDb.Tests
 
             Func<Task> act = async () => { await _fixture.Sut.Client.WriteAsync(points, _fixture.DbName); };
 
-            act.ShouldThrow<InfluxDataApiException>();
+            await act.Should().ThrowAsync<InfluxDataApiException>();
         }
 
         [Fact]
-        public virtual void ClientQuery_OnInvalidQuery_ShouldThrowException()
+        public virtual async Task ClientQuery_OnInvalidQuery_ShouldThrowException()
         {
             Func<Task> act = async () => { await _fixture.Sut.Client.QueryAsync(_fixture.DbName, "blah"); };
 
-            act.ShouldThrow<InfluxDataApiException>();
+            await act.Should().ThrowAsync<InfluxDataApiException>();
         }
 
         [Fact]
