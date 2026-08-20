@@ -53,6 +53,8 @@ var influxDbClient = new InfluxDbClient("http://yourinfluxdb.com:8086/", "userna
 
 Additional, optional params for InfluxDbClient are a custom `HttpClient` if you think you need control over it, and `throwOnWarning` which will throw an `InfluxDataWarningException` if the InfluxDb API returns a warning as a part of the response. That should preferably be used only for debugging purposes.
 
+`InfluxDbClient` implements both `IDisposable` and `IAsyncDisposable`. An `HttpClient` passed to its constructor is **borrowed** and remains owned by the caller; disposing `InfluxDbClient` will not dispose it. If no `HttpClient` is passed to the convenience constructor, `InfluxDbClient` creates, owns, and disposes one. An `HttpClient` obtained from a supplied `IInfluxDbClientConfiguration` is also treated as borrowed so that configurations can safely be shared. The official modern client used by `Flux` has a separate HTTP stack and is disposed by `InfluxDbClient`.
+
 To use InfluxData.Net KapacitorClient you must first create an instance of `KapacitorClient` (Kapacitor doesn't support authentication yet, so use this overload for now):
 
 ```cs
@@ -73,6 +75,8 @@ If needed, a custom HttpClient can be used for making requests. Simply pass it i
   - _[MultiQueryChunkedAsync()](#multiquerychunkedasync)_
 - [Delete](#delete-module-influxdb-18)
   - _[DeleteAsync()](#deleteasync)_
+- [Flux](#flux-query-api-influxdb-18)
+  - _[QueryAsync()](#flux-queryasync)_
 - [Database](#database-module)
   - _[CreateDatabaseAsync()](#createdatabaseasync)_
   - _[GetDatabasesAsync()](#getdatabasesasync)_
@@ -232,6 +236,33 @@ var response = await influxDbClient.Client.MultiQueryAsync(queries, "yourDbName"
 #### MultiQueryChunkedAsync
 
 Check the usage [here](https://github.com/pootzko/InfluxData.Net/pull/39#issuecomment-287722949).
+
+### Flux Query API (InfluxDB 1.8+)
+
+`IInfluxDbClientModern` adds Flux querying through the official `InfluxDB.Client` package without
+changing the established InfluxQL, write, delete, or administration APIs. Enable Flux on the server
+by setting `flux-enabled = true` under `[http]` in `influxdb.conf`.
+
+#### Flux QueryAsync
+
+InfluxDB 1.x identifies a Flux bucket as `database/retention-policy`:
+
+```cs
+using var influxDbClient = new InfluxDbClient(
+    "http://yourinfluxdb.com:8086/",
+    "username",
+    "password",
+    InfluxDbVersion.v_1_12);
+
+var tables = await influxDbClient.Flux.QueryAsync(
+    "from(bucket: \"yourDbName/autogen\") " +
+    "|> range(start: -1h) " +
+    "|> filter(fn: (r) => r._measurement == \"temperature\")");
+```
+
+The `Flux` property is the official `InfluxDB.Client.IQueryApi`, so its table, record, streaming,
+POCO, raw-query, and cancellation APIs are available directly. Explicit server versions older than
+InfluxDB 1.8 throw `NotSupportedException` when `Flux` is accessed.
 
 ### Delete Module (InfluxDB 1.8+)
 

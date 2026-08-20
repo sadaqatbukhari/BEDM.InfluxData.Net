@@ -14,11 +14,12 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>A modernized .NET 10 client library for the InfluxDB and Kapacitor REST APIs, based on InfluxData.Net.
 
-Includes backward-compatible InfluxQL operations and the InfluxDB 1.8+ v2-compatible delete API.</description>
-        <releaseNotes>Version $version$ targets .NET 10, modernizes dependencies and tests, and adds the InfluxDB 1.8+ time-range and predicate delete API.</releaseNotes>
-        <tags>influx influxdb influxdata kapacitor TICK-stack dotnet10</tags>
+Includes backward-compatible InfluxQL operations, the InfluxDB 1.8+ v2-compatible delete API, and Flux querying through the official InfluxDB.Client.</description>
+        <releaseNotes>Version $version$ targets .NET 10, modernizes dependencies and tests, and adds the InfluxDB 1.8+ delete and official Flux query APIs.</releaseNotes>
+        <tags>influx influxdb influxdata flux kapacitor TICK-stack dotnet10</tags>
         <dependencies>
             <group targetFramework="net10.0">
+                <dependency id="InfluxDB.Client" version="5.1.0" />
                 <dependency id="Newtonsoft.Json" version="13.0.4" />
             </group>
         </dependencies>

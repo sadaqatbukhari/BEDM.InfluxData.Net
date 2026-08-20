@@ -30,7 +30,10 @@ namespace InfluxData.Net.InfluxDb.Infrastructure
         /// <param name="password">InfluxDb server password.</param>
         /// <param name="influxVersion">InfluxDb server version.</param>
         /// <param name="queryLocation">Where queries are located in the request (URI params vs. Form Data) (optional).</param>
-        /// <param name="httpClient">Custom HttpClient object (optional).</param>
+        /// <param name="httpClient">
+        /// Custom HttpClient object (optional). The configuration never disposes this instance.
+        /// When this configuration is supplied to InfluxDbClient, its HttpClient is borrowed.
+        /// </param>
         /// <param name="throwOnWarning">Should throw exception upon InfluxDb warning message (for debugging) (optional).</param>
         public InfluxDbClientConfiguration(
             Uri endpointUri, 

@@ -7,12 +7,22 @@ using InfluxData.Net.InfluxDb.RequestClients;
 using InfluxData.Net.InfluxDb.ResponseParsers;
 using InfluxData.Net.Common.Infrastructure;
 using System.Net.Http;
+using System.Threading.Tasks;
 using InfluxData.Net.InfluxDb.ClientSubModules;
+using InfluxDB.Client;
 
 namespace InfluxData.Net.InfluxDb
 {
-    public class InfluxDbClient : IInfluxDbClientV2
+    public class InfluxDbClient : IInfluxDbClientModern, IDisposable, IAsyncDisposable
     {
+        private readonly object _disposeLock = new object();
+        private readonly HttpClient _ownedHttpClient;
+        private readonly Lazy<IInfluxDBClient> _modernClient;
+        private readonly Lazy<IQueryApi> _fluxQueryApi;
+        private readonly InfluxDbVersion _influxVersion;
+        private readonly bool _supportsModernApi;
+        private bool _disposed;
+
         private IInfluxDbRequestClient _requestClient;
         public IInfluxDbRequestClient RequestClient
         {
@@ -83,6 +93,31 @@ namespace InfluxData.Net.InfluxDb
         }
 
         /// <summary>
+        /// Gets the official InfluxDB.Client Flux query API for InfluxDB 1.8+.
+        /// Existing InfluxQL query APIs remain available through <see cref="Client"/>.
+        /// </summary>
+        public IQueryApi Flux
+        {
+            get
+            {
+                lock (_disposeLock)
+                {
+                    ThrowIfDisposed();
+
+                    if (!_supportsModernApi)
+                    {
+                        throw new NotSupportedException(
+                            String.Format(
+                                "Flux queries require InfluxDB 1.8 or newer. The configured version is {0}.",
+                                _influxVersion));
+                    }
+
+                    return _fluxQueryApi.Value;
+                }
+            }
+        }
+
+        /// <summary>
         /// InfluxDb client.
         /// </summary>
         /// <param name="endpointUri">InfluxDb server URI.</param>
@@ -90,7 +125,10 @@ namespace InfluxData.Net.InfluxDb
         /// <param name="password">InfluxDb server password.</param>
         /// <param name="influxVersion">InfluxDb server version.</param>
         /// <param name="queryLocation">Where queries are located in the request (URI params vs. Form Data) (optional).</param>
-        /// <param name="httpClient">Custom HttpClient object (optional).</param>
+        /// <param name="httpClient">
+        /// Custom HttpClient object (optional). A supplied instance is borrowed and is never disposed
+        /// by this client. When omitted, this client creates and owns an HttpClient.
+        /// </param>
         /// <param name="throwOnWarning">Should throw exception upon InfluxDb warning message (for debugging) (optional).</param>
         public InfluxDbClient(
             string endpointUri,
@@ -109,15 +147,27 @@ namespace InfluxData.Net.InfluxDb
                 queryLocation,
                 httpClient,
                 throwOnWarning
-            )
+            ),
+            httpClient == null
         ) {}
 
         /// <summary>
         /// InfluxDb client.
         /// </summary>
-        /// <param name="configuration">InfluxDb client configuration.</param>
+        /// <param name="configuration">
+        /// InfluxDb client configuration. Its HttpClient is borrowed and remains owned by the caller,
+        /// allowing the same configuration or HttpClient to be shared safely between clients.
+        /// </param>
         public InfluxDbClient(IInfluxDbClientConfiguration configuration)
+            : this(configuration, false)
         {
+        }
+
+        private InfluxDbClient(IInfluxDbClientConfiguration configuration, bool ownsHttpClient)
+        {
+            _ownedHttpClient = ownsHttpClient ? configuration.HttpClient : null;
+            _influxVersion = configuration.InfluxVersion;
+
             switch (configuration.InfluxVersion)
             {
                 case InfluxDbVersion.Latest:
@@ -149,6 +199,14 @@ namespace InfluxData.Net.InfluxDb
             _deleteClientModule = SupportsV2Delete(configuration.InfluxVersion)
                 ? new Lazy<IDeleteClientModule>(() => new DeleteClientModule(_requestClient), true)
                 : new Lazy<IDeleteClientModule>(() => new UnsupportedDeleteClientModule(configuration.InfluxVersion), true);
+
+            _supportsModernApi = SupportsModernApi(configuration.InfluxVersion);
+            _modernClient = new Lazy<IInfluxDBClient>(
+                () => CreateModernClient(configuration),
+                true);
+            _fluxQueryApi = new Lazy<IQueryApi>(
+                () => _modernClient.Value.GetQueryApi(),
+                true);
         }
 
         private static bool SupportsV2Delete(InfluxDbVersion version)
@@ -156,6 +214,75 @@ namespace InfluxData.Net.InfluxDb
             return version == InfluxDbVersion.Latest
                 || version == InfluxDbVersion.v_1_8
                 || version == InfluxDbVersion.v_1_12;
+        }
+
+        private static bool SupportsModernApi(InfluxDbVersion version)
+        {
+            return version == InfluxDbVersion.Latest
+                || version == InfluxDbVersion.v_1_8
+                || version == InfluxDbVersion.v_1_12;
+        }
+
+        private static IInfluxDBClient CreateModernClient(IInfluxDbClientConfiguration configuration)
+        {
+            var username = configuration.Username ?? String.Empty;
+            var password = configuration.Password ?? String.Empty;
+            var token = String.IsNullOrEmpty(username) && String.IsNullOrEmpty(password)
+                ? String.Empty
+                : String.Format("{0}:{1}", username, password);
+
+            var options = new InfluxDBClientOptions(configuration.EndpointUri.ToString())
+            {
+                // InfluxDB 1.x doesn't use organizations, but the official query
+                // client requires a non-empty value when calling /api/v2/query.
+                Org = "-",
+                Token = token
+            };
+
+            return new InfluxDBClient(options);
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (_disposed)
+                throw new ObjectDisposedException(nameof(InfluxDbClient));
+        }
+
+        /// <summary>
+        /// Releases the separately owned official modern client and the legacy HttpClient only when
+        /// this instance created it. Caller-supplied HttpClient instances are never disposed.
+        /// </summary>
+        public void Dispose()
+        {
+            lock (_disposeLock)
+            {
+                if (_disposed)
+                    return;
+
+                _disposed = true;
+
+                try
+                {
+                    if (_modernClient.IsValueCreated)
+                        _modernClient.Value.Dispose();
+                }
+                finally
+                {
+                    _ownedHttpClient?.Dispose();
+                }
+            }
+
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Asynchronously releases this client. The underlying clients currently expose synchronous
+        /// disposal only, so disposal completes synchronously.
+        /// </summary>
+        public ValueTask DisposeAsync()
+        {
+            Dispose();
+            return ValueTask.CompletedTask;
         }
 
         /// <summary>
