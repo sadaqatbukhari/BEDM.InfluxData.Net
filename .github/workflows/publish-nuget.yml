@@ -3,45 +3,131 @@ name: Publish NuGet Package
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   workflow_dispatch:
 
-permissions:
-  contents: read
-  id-token: write  # Enables OIDC token issuance for NuGet Trusted Publishing
+concurrency:
+  group: nuget-publish-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   publish:
+    name: Build, test, and publish
     runs-on: ubuntu-latest
-    environment: production  # Matches the environment specified in your NuGet Trusted Publisher configuration
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: "10.0.400"
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore InfluxData.Net.sln
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build InfluxData.Net.sln --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test --configuration Release --no-build --verbosity normal
-        continue-on-error: true
+      - name: Run unit tests
+        run: >-
+          dotnet test InfluxData.Net.Tests/InfluxData.Net.Tests.csproj
+          --configuration Release
+          --no-build
+          --filter "FullyQualifiedName!~Integration"
+          --verbosity normal
+
+      - name: Read package identity from InfluxData.Net
+        id: package
+        shell: bash
+        run: |
+          package_id="$(dotnet msbuild InfluxData.Net/InfluxData.Net.csproj -getProperty:PackageId)"
+          package_version="$(dotnet msbuild InfluxData.Net/InfluxData.Net.csproj -getProperty:PackageVersion)"
+
+          echo "id=$package_id" >> "$GITHUB_OUTPUT"
+          echo "version=$package_version" >> "$GITHUB_OUTPUT"
+
+      - name: Validate release tag
+        if: github.event_name == 'push'
+        shell: bash
+        env:
+          PACKAGE_VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+
+          if [[ "$tag_version" != "$PACKAGE_VERSION" ]]; then
+            echo "Tag version '$tag_version' does not match package version '$PACKAGE_VERSION'."
+            exit 1
+          fi
+
+      - name: Check whether the package version already exists
+        id: version-check
+        shell: bash
+        env:
+          PACKAGE_ID: ${{ steps.package.outputs.id }}
+          PACKAGE_VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          package_id_lower="${PACKAGE_ID,,}"
+          package_version_lower="${PACKAGE_VERSION,,}"
+          versions_url="https://api.nuget.org/v3-flatcontainer/${package_id_lower}/index.json"
+          status_code="$(curl --silent --show-error --output nuget-versions.json --write-out '%{http_code}' "$versions_url")"
+
+          case "$status_code" in
+            200)
+              if grep --fixed-strings --quiet "\"${package_version_lower}\"" nuget-versions.json; then
+                echo "${PACKAGE_ID} ${PACKAGE_VERSION} already exists on NuGet.org; publishing will be skipped."
+                echo "should_publish=false" >> "$GITHUB_OUTPUT"
+              else
+                echo "should_publish=true" >> "$GITHUB_OUTPUT"
+              fi
+              ;;
+            404)
+              echo "should_publish=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "NuGet.org returned HTTP ${status_code} while checking existing versions."
+              exit 1
+              ;;
+          esac
 
       - name: Pack
-        run: dotnet pack --configuration Release --no-build -o ./artifacts
+        if: steps.version-check.outputs.should_publish == 'true'
+        run: >-
+          dotnet pack InfluxData.Net/InfluxData.Net.csproj
+          --configuration Release
+          --no-build
+          --output artifacts
+          -p:NuspecFile=../InfluxData.Net.nuspec
+          -p:NuspecBasePath=..
 
-      - name: NuGet login (OIDC → temp API key)
+      - name: NuGet login with Trusted Publishing
+        if: steps.version-check.outputs.should_publish == 'true'
+        id: nuget-login
         uses: NuGet/login@v1
-        id: login
         with:
           user: sadaqatbukhari
 
-      - name: Push to NuGet
-        run: dotnet nuget push "./artifacts/*.nupkg" --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+      - name: Publish to NuGet.org
+        if: steps.version-check.outputs.should_publish == 'true'
+        shell: bash
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          PACKAGE_ID: ${{ steps.package.outputs.id }}
+          PACKAGE_VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          package_path="artifacts/${PACKAGE_ID}.${PACKAGE_VERSION}.nupkg"
+
+          if [[ ! -f "$package_path" ]]; then
+            echo "The expected package '$package_path' was not created."
+            exit 1
+          fi
+
+          dotnet nuget push "$package_path" \
+            --api-key "$NUGET_API_KEY" \
+            --source "https://api.nuget.org/v3/index.json" \
+            --skip-duplicate

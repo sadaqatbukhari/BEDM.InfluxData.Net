@@ -37,7 +37,11 @@ Currently older supported versions:
  - [Changelog](https://github.com/pootzko/InfluxData.Net/blob/master/CHANGELOG.md)
 
 ## Installation
-You can download the [InfluxData.Net Nuget](https://www.nuget.org/packages/InfluxData.Net/) package to install the latest version of InfluxData.Net Lib.
+Install the [InfluxData.Net.Latest NuGet package](https://www.nuget.org/packages/InfluxData.Net.Latest/) from NuGet.org:
+
+```powershell
+dotnet add package InfluxData.Net.Latest
+```
 
 ## Usage
 

@@ -1,21 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
-        <id>InfluxData.Net_Latest</id>
-        <version>2.0.0</version>
-        <title>InfluxData.Net_Latest</title>
+        <id>InfluxData.Net.Latest</id>
+        <version>$version$</version>
+        <title>InfluxData.Net Latest</title>
         <authors>Sadaqat Hussain</authors>
         <owners>Sadaqat Hussain</owners>
-        <licenseUrl>https://github.com/pootzko/InfluxData.Net/blob/master/LICENSE</licenseUrl>
-        <projectUrl>https://github.com/pootzko/InfluxData.Net</projectUrl>
-        <iconUrl>https://raw.githubusercontent.com/pootzko/InfluxData.Net/master/nuget-icon.png</iconUrl>
+        <license type="expression">MIT</license>
+        <projectUrl>https://github.com/sadaqatbukhari/BEDM.InfluxData.Net</projectUrl>
+        <repository type="git" url="https://github.com/sadaqatbukhari/BEDM.InfluxData.Net.git" />
+        <icon>nuget-icon.png</icon>
+        <readme>README.md</readme>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>InfluxData.Net is a fast, portable .NET library to access the REST API of an InfluxDB database and Kapacitor processing tool.
+        <description>A modernized .NET 10 client library for the InfluxDB and Kapacitor REST APIs, based on InfluxData.Net.
 
-The library targets .NET 10.</description>
-        <releaseNotes>For a full list of changes, please see CHANGELOG:
-https://github.com/pootzko/InfluxData.Net/blob/master/CHANGELOG.md</releaseNotes>
-        <tags>influx, influxdb, influxdata, kapacitor, TICK-stack</tags>
+Includes backward-compatible InfluxQL operations and the InfluxDB 1.8+ v2-compatible delete API.</description>
+        <releaseNotes>Version $version$ targets .NET 10, modernizes dependencies and tests, and adds the InfluxDB 1.8+ time-range and predicate delete API.</releaseNotes>
+        <tags>influx influxdb influxdata kapacitor TICK-stack dotnet10</tags>
         <dependencies>
             <group targetFramework="net10.0">
                 <dependency id="Newtonsoft.Json" version="13.0.4" />
@@ -24,17 +25,14 @@ https://github.com/pootzko/InfluxData.Net/blob/master/CHANGELOG.md</releaseNotes
     </metadata>
     <files>
         <file src="InfluxData.Net\bin\Release\net10.0\InfluxData.Net.Common.dll" target="lib\net10.0\InfluxData.Net.Common.dll" />
-        <file src="InfluxData.Net\bin\Release\net10.0\InfluxData.Net.Common.dll.config" target="lib\net10.0\InfluxData.Net.Common.dll.config" />
         <file src="InfluxData.Net\bin\Release\net10.0\InfluxData.Net.Common.pdb" target="lib\net10.0\InfluxData.Net.Common.pdb" />
-        <file src="InfluxData.Net\bin\Release\net10.0\InfluxData.Net.deps.json" target="lib\net10.0\InfluxData.Net.deps.json" />
         <file src="InfluxData.Net\bin\Release\net10.0\InfluxData.Net.dll" target="lib\net10.0\InfluxData.Net.dll" />
-        <file src="InfluxData.Net\bin\Release\net10.0\InfluxData.Net.dll.config" target="lib\net10.0\InfluxData.Net.dll.config" />
         <file src="InfluxData.Net\bin\Release\net10.0\InfluxData.Net.InfluxDb.dll" target="lib\net10.0\InfluxData.Net.InfluxDb.dll" />
-        <file src="InfluxData.Net\bin\Release\net10.0\InfluxData.Net.InfluxDb.dll.config" target="lib\net10.0\InfluxData.Net.InfluxDb.dll.config" />
         <file src="InfluxData.Net\bin\Release\net10.0\InfluxData.Net.InfluxDb.pdb" target="lib\net10.0\InfluxData.Net.InfluxDb.pdb" />
         <file src="InfluxData.Net\bin\Release\net10.0\InfluxData.Net.Kapacitor.dll" target="lib\net10.0\InfluxData.Net.Kapacitor.dll" />
-        <file src="InfluxData.Net\bin\Release\net10.0\InfluxData.Net.Kapacitor.dll.config" target="lib\net10.0\InfluxData.Net.Kapacitor.dll.config" />
         <file src="InfluxData.Net\bin\Release\net10.0\InfluxData.Net.Kapacitor.pdb" target="lib\net10.0\InfluxData.Net.Kapacitor.pdb" />
         <file src="InfluxData.Net\bin\Release\net10.0\InfluxData.Net.pdb" target="lib\net10.0\InfluxData.Net.pdb" />
+        <file src="README.md" target="README.md" />
+        <file src="nuget-icon.png" target="nuget-icon.png" />
     </files>
 </package>
