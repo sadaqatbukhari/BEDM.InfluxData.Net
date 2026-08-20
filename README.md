@@ -6,7 +6,7 @@ _NOTE: The **library will most probably work just as fine with newer versions** 
 
 > InfluxData.Net is a portable .NET library to access the REST API of an [InfluxDB](https://influxdata.com/time-series-platform/influxdb/) database and [Kapacitor](https://influxdata.com/time-series-platform/kapacitor/) processing tool.
 
-**The library supports .Net Framework v4.6.1 and .Net Standard v2.0 (which implies .Net Core 2.0).**
+**The library targets .NET 10.**
 
 InfluxDB is the data storage layer in [InfluxData](https://influxdata.com/)'s [TICK stack](https://influxdata.com/get-started/#whats-the-tick-stack) which is an open-source end-to-end platform for managing time-series data at scale.
 
