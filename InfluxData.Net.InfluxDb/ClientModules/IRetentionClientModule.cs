@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+using System.Threading;
+using System.Threading.Tasks;
 ﻿using System.Collections.Generic;
 using InfluxData.Net.Common.Infrastructure;
 using InfluxData.Net.InfluxDb.Models.Responses;
@@ -15,14 +16,14 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="duration">New data keep duration.</param>
         /// <param name="replicationCopies">Number of independent copies of data in the cluster (number of data nodes).</param>
         /// <returns></returns>
-        Task<IInfluxDataApiResponse> CreateRetentionPolicyAsync(string dbName, string policyName, string duration, int replicationCopies);
+        Task<IInfluxDataApiResponse> CreateRetentionPolicyAsync(string dbName, string policyName, string duration, int replicationCopies, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Get the retention policies.
         /// </summary>
         /// <param name="dbName">Database name.</param>
         /// <returns></returns>
-        Task<IEnumerable<RetentionPolicy>> GetRetentionPoliciesAsync(string dbName);
+        Task<IEnumerable<RetentionPolicy>> GetRetentionPoliciesAsync(string dbName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Alters a retention policy.
@@ -32,7 +33,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="duration">New data keep duration.</param>
         /// <param name="replicationCopies">Number of independent copies of data in the cluster (number of data nodes).</param>
         /// <returns></returns>
-        Task<IInfluxDataApiResponse> AlterRetentionPolicyAsync(string dbName, string policyName, string duration, int replicationCopies);
+        Task<IInfluxDataApiResponse> AlterRetentionPolicyAsync(string dbName, string policyName, string duration, int replicationCopies, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Drop a retention policy.
@@ -40,6 +41,6 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="dbName">Database name.</param>
         /// <param name="policyName">Retention policy name.</param>
         /// <returns></returns>
-        Task<IInfluxDataApiResponse> DropRetentionPolicyAsync(string dbName, string policyName);
+        Task<IInfluxDataApiResponse> DropRetentionPolicyAsync(string dbName, string policyName, CancellationToken cancellationToken = default);
     }
 }

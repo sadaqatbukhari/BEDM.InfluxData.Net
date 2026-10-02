@@ -1,4 +1,5 @@
-﻿using System;
+using System.Threading;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using InfluxData.Net.Common.Infrastructure;
@@ -18,39 +19,39 @@ namespace InfluxData.Net.Kapacitor.ClientModules
         {
         }
 
-        public virtual async Task<KapacitorTask> GetTaskAsync(string taskId)
+        public virtual async Task<KapacitorTask> GetTaskAsync(string taskId, CancellationToken cancellationToken = default)
         {
-            var response = await base.RequestClient.GetAsync(RequestPaths.Tasks, Uri.EscapeDataString(taskId)).ConfigureAwait(false);
+            var response = await base.RequestClient.GetAsync(RequestPaths.Tasks, Uri.EscapeDataString(taskId), cancellationToken: cancellationToken).ConfigureAwait(false);
             var task = response.ReadAs<KapacitorTask>();
 
             return task;
         }
 
-        public virtual async Task<IEnumerable<KapacitorTask>> GetTasksAsync()
+        public virtual async Task<IEnumerable<KapacitorTask>> GetTasksAsync(CancellationToken cancellationToken = default)
         {
-            var response = await base.RequestClient.GetAsync(RequestPaths.Tasks).ConfigureAwait(false);
+            var response = await base.RequestClient.GetAsync(RequestPaths.Tasks, cancellationToken: cancellationToken).ConfigureAwait(false);
             var tasks = response.ReadAs<KapacitorTasks>();
 
             return tasks.Tasks;
         }
 
-        public virtual async Task<IInfluxDataApiResponse> DefineTaskAsync(DefineTaskParams taskParams)
+        public virtual async Task<IInfluxDataApiResponse> DefineTaskAsync(DefineTaskParams taskParams, CancellationToken cancellationToken = default)
         {
             var contentDict = BuildDefineTaskContentDict(taskParams);
             contentDict.Add(BodyParams.Type, taskParams.TaskType.ToString().ToLower());
             contentDict.Add(BodyParams.Script, taskParams.TickScript);
             var content = JsonConvert.SerializeObject(contentDict);
 
-            return await base.RequestClient.PostAsync(RequestPaths.Tasks, content: content).ConfigureAwait(false);
+            return await base.RequestClient.PostAsync(RequestPaths.Tasks, content: content, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public virtual async Task<IInfluxDataApiResponse> DefineTaskAsync(DefineTemplatedTaskParams taskParams)
+        public virtual async Task<IInfluxDataApiResponse> DefineTaskAsync(DefineTemplatedTaskParams taskParams, CancellationToken cancellationToken = default)
         {
             var contentDict = BuildDefineTaskContentDict(taskParams);
             contentDict.Add(BodyParams.TemplateId, taskParams.TemplateId);
             var content = JsonConvert.SerializeObject(contentDict);
 
-            return await base.RequestClient.PostAsync(RequestPaths.Tasks, content: content).ConfigureAwait(false);
+            return await base.RequestClient.PostAsync(RequestPaths.Tasks, content: content, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         protected virtual Dictionary<string, object> BuildDefineTaskContentDict(BaseTaskParams taskParams)
@@ -70,29 +71,29 @@ namespace InfluxData.Net.Kapacitor.ClientModules
             };
         }
 
-        public virtual async Task<IInfluxDataApiResponse> DeleteTaskAsync(string taskId)
+        public virtual async Task<IInfluxDataApiResponse> DeleteTaskAsync(string taskId, CancellationToken cancellationToken = default)
         {
-            return await base.RequestClient.DeleteAsync(RequestPaths.Tasks, Uri.EscapeDataString(taskId)).ConfigureAwait(false);
+            return await base.RequestClient.DeleteAsync(RequestPaths.Tasks, Uri.EscapeDataString(taskId), cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public virtual async Task<IInfluxDataApiResponse> EnableTaskAsync(string taskId)
+        public virtual async Task<IInfluxDataApiResponse> EnableTaskAsync(string taskId, CancellationToken cancellationToken = default)
         {
             var content = JsonConvert.SerializeObject(new Dictionary<string, object>
             {
                 { BodyParams.Status, "enabled" },
             });
 
-            return await base.RequestClient.PatchAsync(RequestPaths.Tasks, Uri.EscapeDataString(taskId), content).ConfigureAwait(false);
+            return await base.RequestClient.PatchAsync(RequestPaths.Tasks, Uri.EscapeDataString(taskId), content, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public virtual async Task<IInfluxDataApiResponse> DisableTaskAsync(string taskId)
+        public virtual async Task<IInfluxDataApiResponse> DisableTaskAsync(string taskId, CancellationToken cancellationToken = default)
         {
             var content = JsonConvert.SerializeObject(new Dictionary<string, object>
             {
                 { BodyParams.Status, "disabled" },
             });
 
-            return await base.RequestClient.PatchAsync(RequestPaths.Tasks, Uri.EscapeDataString(taskId), content).ConfigureAwait(false);
+            return await base.RequestClient.PatchAsync(RequestPaths.Tasks, Uri.EscapeDataString(taskId), content, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 }

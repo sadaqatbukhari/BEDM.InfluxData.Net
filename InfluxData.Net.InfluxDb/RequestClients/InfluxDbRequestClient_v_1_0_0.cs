@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+using System.Threading;
+using System.Net.Http;
 using System.Threading.Tasks;
 using InfluxData.Net.Common.Infrastructure;
 using InfluxData.Net.InfluxDb.Constants;
@@ -14,11 +15,11 @@ namespace InfluxData.Net.InfluxDb.RequestClients
         {
         }
 
-        public override async Task<IInfluxDataApiResponse> QueryAsync(string query, HttpMethod method, string dbName = null, string epochFormat = null, long? chunkSize = null)
+        public override async Task<IInfluxDataApiResponse> QueryAsync(string query, HttpMethod method, string dbName = null, string epochFormat = null, long? chunkSize = null, CancellationToken cancellationToken = default)
         {
             var requestParams = RequestParamsBuilder.BuildQueryRequestParams(query, dbName, epochFormat, chunkSize);
 
-            return await base.RequestAsync(method, RequestPaths.Query, requestParams).ConfigureAwait(false);
+            return await base.RequestAsync(method, RequestPaths.Query, requestParams, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         public override IPointFormatter GetPointFormatter()

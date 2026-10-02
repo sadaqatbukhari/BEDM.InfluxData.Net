@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using InfluxData.Net.Common.Infrastructure;
 using InfluxData.Net.InfluxDb.Enums;
@@ -21,68 +22,68 @@ namespace InfluxData.Net.InfluxDb.ClientModules
             _userResponseParser = userResponseParser;
         }
 
-        public async Task<IEnumerable<User>> GetUsersAsync()
+        public async Task<IEnumerable<User>> GetUsersAsync(CancellationToken cancellationToken = default)
         {
             var query = _userQueryBuilder.GetUsers();
-            var series = await base.ResolveSingleGetSeriesResultAsync(query).ConfigureAwait(false);
+            var series = await base.ResolveSingleGetSeriesResultAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
             var users = _userResponseParser.GetUsers(series);
             return users;
         }
 
-        public async Task<IInfluxDataApiResponse> CreateUserAsync(string username, string password, bool isAdmin = false)
+        public async Task<IInfluxDataApiResponse> CreateUserAsync(string username, string password, bool isAdmin = false, CancellationToken cancellationToken = default)
         {
             var query = _userQueryBuilder.CreateUser(username, password, isAdmin);
-            var response = await base.PostAndValidateQueryAsync(query).ConfigureAwait(false);
+            var response = await base.PostAndValidateQueryAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
             return response;
         }
 
-        public async Task<IInfluxDataApiResponse> DropUserAsync(string username)
+        public async Task<IInfluxDataApiResponse> DropUserAsync(string username, CancellationToken cancellationToken = default)
         {
             var query = _userQueryBuilder.DropUser(username);
-            var response = await base.PostAndValidateQueryAsync(query).ConfigureAwait(false);
+            var response = await base.PostAndValidateQueryAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
             return response;
         }
 
-        public async Task<IInfluxDataApiResponse> SetPasswordAsync(string username, string password)
+        public async Task<IInfluxDataApiResponse> SetPasswordAsync(string username, string password, CancellationToken cancellationToken = default)
         {
             var query = _userQueryBuilder.SetPassword(username, password);
-            var response = await base.PostAndValidateQueryAsync(query).ConfigureAwait(false);
+            var response = await base.PostAndValidateQueryAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
             return response;
         }
 
-        public async Task<IEnumerable<Grant>> GetPrivilegesAsync(string username)
+        public async Task<IEnumerable<Grant>> GetPrivilegesAsync(string username, CancellationToken cancellationToken = default)
         {
             var query = _userQueryBuilder.GetPrivileges(username);
-            var series = await base.ResolveSingleGetSeriesResultAsync(query).ConfigureAwait(false);
+            var series = await base.ResolveSingleGetSeriesResultAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
             var grants = _userResponseParser.GetPrivileges(series);
             return grants;
         }
 
-        public async Task<IInfluxDataApiResponse> GrantAdministratorAsync(string username)
+        public async Task<IInfluxDataApiResponse> GrantAdministratorAsync(string username, CancellationToken cancellationToken = default)
         {
             var query = _userQueryBuilder.GrantAdministator(username);
-            var response = await base.PostAndValidateQueryAsync(query).ConfigureAwait(false);
+            var response = await base.PostAndValidateQueryAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
             return response;
         }
 
-        public async Task<IInfluxDataApiResponse> RevokeAdministratorAsync(string username)
+        public async Task<IInfluxDataApiResponse> RevokeAdministratorAsync(string username, CancellationToken cancellationToken = default)
         {
             var query = _userQueryBuilder.RevokeAdministrator(username);
-            var response = await base.PostAndValidateQueryAsync(query).ConfigureAwait(false);
+            var response = await base.PostAndValidateQueryAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
             return response;
         }
 
-        public async Task<IInfluxDataApiResponse> GrantPrivilegeAsync(string username, Privileges privilege, string dbName)
+        public async Task<IInfluxDataApiResponse> GrantPrivilegeAsync(string username, Privileges privilege, string dbName, CancellationToken cancellationToken = default)
         {
             var query = _userQueryBuilder.GrantPrivilege(username, privilege, dbName);
-            var response = await base.PostAndValidateQueryAsync(query).ConfigureAwait(false);
+            var response = await base.PostAndValidateQueryAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
             return response;
         }
 
-        public async Task<IInfluxDataApiResponse> RevokePrivilegeAsync(string username, Privileges privilege, string dbName)
+        public async Task<IInfluxDataApiResponse> RevokePrivilegeAsync(string username, Privileges privilege, string dbName, CancellationToken cancellationToken = default)
         {
             var query = _userQueryBuilder.RevokePrivilege(username, privilege, dbName);
-            var response = await base.PostAndValidateQueryAsync(query).ConfigureAwait(false);
+            var response = await base.PostAndValidateQueryAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
             return response;
         }
     }

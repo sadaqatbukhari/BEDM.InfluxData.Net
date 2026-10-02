@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using InfluxData.Net.Common.Infrastructure;
 using InfluxData.Net.InfluxDb.Models.Responses;
@@ -16,7 +17,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="measurementName">Measurement name (optional).</param>
         /// <param name="filters">A collection of "WHERE" clause filters (optional).</param>
         /// <returns></returns>
-        Task<IEnumerable<SerieSet>> GetSeriesAsync(string dbName, string measurementName = null, IEnumerable<string> filters = null);
+        Task<IEnumerable<SerieSet>> GetSeriesAsync(string dbName, string measurementName = null, IEnumerable<string> filters = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes all data points from a serie.
@@ -25,7 +26,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="measurementName">Measurement name.</param>
         /// <param name="filters">A collection of "WHERE" clause filters (optional).</param>
         /// <returns></returns>
-        Task<IInfluxDataApiResponse> DropSeriesAsync(string dbName, string measurementName, IEnumerable<string> filters = null);
+        Task<IInfluxDataApiResponse> DropSeriesAsync(string dbName, string measurementName, IEnumerable<string> filters = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes all data points from multiple series.
@@ -34,7 +35,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="measurementName">A list of measurement names.</param>
         /// <param name="filters">A collection of "WHERE" clause filters (optional).</param>
         /// <returns></returns>
-        Task<IInfluxDataApiResponse> DropSeriesAsync(string dbName, IEnumerable<string> measurementNames, IEnumerable<string> filters = null);
+        Task<IInfluxDataApiResponse> DropSeriesAsync(string dbName, IEnumerable<string> measurementNames, IEnumerable<string> filters = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets distinct measurements.
@@ -42,7 +43,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="dbName">Database name.</param>
         /// <param name="filters">A collection of "WHERE" clause filters (optional).</param>
         /// <returns></returns>
-        Task<IEnumerable<Measurement>> GetMeasurementsAsync(string dbName, IEnumerable<string> filters = null);
+        Task<IEnumerable<Measurement>> GetMeasurementsAsync(string dbName, IEnumerable<string> filters = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes all data points and series itself. Unlike DROP SERIES it also deletes
@@ -51,7 +52,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="dbName">Database name.</param>
         /// <param name="measurementName">Measurement name.</param>
         /// <returns></returns>
-        Task<IInfluxDataApiResponse> DropMeasurementAsync(string dbName, string measurementName);
+        Task<IInfluxDataApiResponse> DropMeasurementAsync(string dbName, string measurementName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets all tag keys associated with a specific measurement.
@@ -59,7 +60,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="dbName">Database name.</param>
         /// <param name="measurementName">Measurement name.</param>
         /// <returns></returns>
-        Task<IEnumerable<string>> GetTagKeysAsync(string dbName, string measurementName);
+        Task<IEnumerable<string>> GetTagKeysAsync(string dbName, string measurementName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets all tag values associated with a specific measurement and tag key.
@@ -68,7 +69,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="measurementName">Measurement name.</param>
         /// <param name="tagName">Tag name.</param>
         /// <returns></returns>
-        Task<IEnumerable<TagValue>> GetTagValuesAsync(string dbName, string measurementName, string tagName);
+        Task<IEnumerable<TagValue>> GetTagValuesAsync(string dbName, string measurementName, string tagName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets all field keys associated with a specific measurement.
@@ -76,7 +77,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="dbName">Database name.</param>
         /// <param name="measurementName">Measurement name.</param>
         /// <returns></returns>
-        Task<IEnumerable<FieldKey>> GetFieldKeysAsync(string dbName, string measurementName);
+        Task<IEnumerable<FieldKey>> GetFieldKeysAsync(string dbName, string measurementName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates a BatchWriter instance which can then be shared by multiple threads/processes to be used

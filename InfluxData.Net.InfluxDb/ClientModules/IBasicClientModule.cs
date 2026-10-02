@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using InfluxData.Net.Common.Infrastructure;
 using InfluxData.Net.InfluxDb.Models;
@@ -18,7 +19,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="epochFormat">Epoch timestamp format. (OPTIONAL)</param>
         /// <param name="chunkSize">Maximum number of rows per chunk. (OPTIONAL)</param>
         /// <returns></returns>
-        Task<IEnumerable<Serie>> QueryAsync(string query, string dbName = null, string epochFormat = null, long? chunkSize = null);
+        Task<IEnumerable<Serie>> QueryAsync(string query, string dbName = null, string epochFormat = null, long? chunkSize = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes multiple queries against the database in a single request and extracts and flattens
@@ -30,7 +31,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="epochFormat">Epoch timestamp format. (OPTIONAL)</param>
         /// <param name="chunkSize">Maximum number of rows per chunk. (OPTIONAL)</param>
         /// <returns></returns>
-        Task<IEnumerable<Serie>> QueryAsync(IEnumerable<string> queries, string dbName = null, string epochFormat = null, long? chunkSize = null);
+        Task<IEnumerable<Serie>> QueryAsync(IEnumerable<string> queries, string dbName = null, string epochFormat = null, long? chunkSize = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes a parameterized query against the database. If chunkSize is specified, responses 
@@ -42,7 +43,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="epochFormat">Epoch timestamp format. (OPTIONAL)</param>
         /// <param name="chunkSize">Maximum number of rows per chunk. (OPTIONAL)</param>
         /// <returns></returns>
-        Task<IEnumerable<Serie>> QueryAsync(string queryTemplate, object parameters, string dbName = null, string epochFormat = null, long? chunkSize = null);
+        Task<IEnumerable<Serie>> QueryAsync(string queryTemplate, object parameters, string dbName = null, string epochFormat = null, long? chunkSize = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes multiple queries against the database in a single request. If chunkSize is specified, responses 
@@ -53,7 +54,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="epochFormat">Epoch timestamp format. (OPTIONAL)</param>
         /// <param name="chunkSize">Maximum number of rows per chunk. (OPTIONAL)</param>
         /// <returns></returns>
-        Task<IEnumerable<IEnumerable<Serie>>> MultiQueryAsync(IEnumerable<string> queries, string dbName = null, string epochFormat = null, long? chunkSize = null);
+        Task<IEnumerable<IEnumerable<Serie>>> MultiQueryAsync(IEnumerable<string> queries, string dbName = null, string epochFormat = null, long? chunkSize = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Writes a single serie point to the database.
@@ -63,7 +64,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="retentionPolicy">The retention policy.</param>
         /// <param name="precision">InfluxDb time precision to use (defaults to 'ms')</param>
         /// <returns></returns>
-        Task<IInfluxDataApiResponse> WriteAsync(Point point, string dbName = null, string retentionPolicy = null, string precision = TimeUnit.Milliseconds);
+        Task<IInfluxDataApiResponse> WriteAsync(Point point, string dbName = null, string retentionPolicy = null, string precision = TimeUnit.Milliseconds, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Writes multiple serie points to the database.
@@ -73,6 +74,6 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="retentionPolicy">The retention policy.</param>
         /// <param name="precision">InfluxDb time precision to use (defaults to 'ms')</param>
         /// <returns></returns>
-        Task<IInfluxDataApiResponse> WriteAsync(IEnumerable<Point> points, string dbName = null, string retentionPolicy = null, string precision = TimeUnit.Milliseconds);
+        Task<IInfluxDataApiResponse> WriteAsync(IEnumerable<Point> points, string dbName = null, string retentionPolicy = null, string precision = TimeUnit.Milliseconds, CancellationToken cancellationToken = default);
     }
 }

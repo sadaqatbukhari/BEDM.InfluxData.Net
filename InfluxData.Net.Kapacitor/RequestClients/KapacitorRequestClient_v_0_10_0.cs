@@ -1,4 +1,4 @@
-﻿using InfluxData.Net.Common.Infrastructure;
+using InfluxData.Net.Common.Infrastructure;
 
 namespace InfluxData.Net.Kapacitor.RequestClients
 {

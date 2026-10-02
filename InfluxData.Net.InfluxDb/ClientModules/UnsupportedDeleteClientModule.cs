@@ -1,3 +1,4 @@
+using System.Threading;
 using System;
 using System.Threading.Tasks;
 using InfluxData.Net.Common.Enums;
@@ -15,7 +16,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
             _version = version;
         }
 
-        public Task<IInfluxDataApiResponse> DeleteAsync(DeleteRequest request, string authorizationToken = null)
+        public Task<IInfluxDataApiResponse> DeleteAsync(DeleteRequest request, string authorizationToken = null, CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException(
                 String.Format("The v2-compatible delete API requires InfluxDB 1.8 or newer; configured version is {0}.", _version));

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Threading;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Net.Http;
@@ -23,27 +24,27 @@ namespace InfluxData.Net.InfluxDb.ClientModules
             this.RequestClient = requestClient;
         }
 
-        protected virtual async Task<IInfluxDataApiResponse> GetAndValidateQueryAsync(string query, string dbName = null, string epochFormat = null)
+        protected virtual async Task<IInfluxDataApiResponse> GetAndValidateQueryAsync(string query, string dbName = null, string epochFormat = null, CancellationToken cancellationToken = default)
         {
-            return await this.RequestAndValidateQueryAsync(query, HttpMethod.Get, dbName, epochFormat).ConfigureAwait(false);
+            return await this.RequestAndValidateQueryAsync(query, HttpMethod.Get, dbName, epochFormat, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        protected virtual async Task<IInfluxDataApiResponse> PostAndValidateQueryAsync(string query, string dbName = null)
+        protected virtual async Task<IInfluxDataApiResponse> PostAndValidateQueryAsync(string query, string dbName = null, CancellationToken cancellationToken = default)
         {
-            return await this.RequestAndValidateQueryAsync(query, HttpMethod.Post, dbName).ConfigureAwait(false);
+            return await this.RequestAndValidateQueryAsync(query, HttpMethod.Post, dbName, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        protected virtual async Task<IInfluxDataApiResponse> RequestAndValidateQueryAsync(string query, HttpMethod method, string dbName = null, string epochFormat = null)
+        protected virtual async Task<IInfluxDataApiResponse> RequestAndValidateQueryAsync(string query, HttpMethod method, string dbName = null, string epochFormat = null, CancellationToken cancellationToken = default)
         {
-            var response = await this.RequestClient.QueryAsync(query, method, dbName, epochFormat).ConfigureAwait(false);
+            var response = await this.RequestClient.QueryAsync(query, method, dbName, epochFormat, cancellationToken: cancellationToken).ConfigureAwait(false);
             response.ValidateQueryResponse(this.RequestClient.Configuration.ThrowOnWarning);
 
             return response;
         }
 
-        protected virtual async Task<IEnumerable<Serie>> ResolveSingleGetSeriesResultAsync(string query, string dbName = null, string epochFormat = null, long? chunkSize = null)
+        protected virtual async Task<IEnumerable<Serie>> ResolveSingleGetSeriesResultAsync(string query, string dbName = null, string epochFormat = null, long? chunkSize = null, CancellationToken cancellationToken = default)
         {
-            var response = await this.RequestClient.GetQueryAsync(query, dbName, epochFormat, chunkSize).ConfigureAwait(false);
+            var response = await this.RequestClient.GetQueryAsync(query, dbName, epochFormat, chunkSize, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             if (chunkSize == null)
                 return this.ResolveSingleGetSeriesResult(response);
@@ -51,9 +52,9 @@ namespace InfluxData.Net.InfluxDb.ClientModules
                 return this.ResolveSingleGetSeriesResultChunked(response);
         }
 
-        protected virtual async Task<IEnumerable<SeriesResult>> ResolveGetSeriesResultAsync(string query, string dbName = null, string epochFormat = null, long? chunkSize = null)
+        protected virtual async Task<IEnumerable<SeriesResult>> ResolveGetSeriesResultAsync(string query, string dbName = null, string epochFormat = null, long? chunkSize = null, CancellationToken cancellationToken = default)
         {
-            var response = await this.RequestClient.GetQueryAsync(query, dbName, epochFormat, chunkSize).ConfigureAwait(false);
+            var response = await this.RequestClient.GetQueryAsync(query, dbName, epochFormat, chunkSize, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             if (chunkSize == null)
                 return this.ResolveGetSeriesResult(response);

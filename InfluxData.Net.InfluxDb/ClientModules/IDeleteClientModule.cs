@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using InfluxData.Net.Common.Infrastructure;
 using InfluxData.Net.InfluxDb.Models;
@@ -15,6 +16,6 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// Optional InfluxDB 2.x API token. When omitted, InfluxDB 1.x credentials are sent
         /// as Token username:password.
         /// </param>
-        Task<IInfluxDataApiResponse> DeleteAsync(DeleteRequest request, string authorizationToken = null);
+        Task<IInfluxDataApiResponse> DeleteAsync(DeleteRequest request, string authorizationToken = null, CancellationToken cancellationToken = default);
     }
 }

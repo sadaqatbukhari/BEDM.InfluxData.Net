@@ -8,6 +8,20 @@ _NOTE: The **library will most probably work just as fine with newer versions** 
 
 **The library targets .NET 10.**
 
+### Async operations and cancellation
+
+InfluxQL, writes, database administration, delete operations, and Kapacitor task APIs accept an optional final `CancellationToken`. The token cancels both the HTTP request and reading its response body. Await these operations instead of using `.Result` or `.Wait()`.
+
+```csharp
+using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+var series = await client.Client.QueryAsync(
+    "SHOW MEASUREMENTS", "metrics", cancellationToken: cancellation.Token);
+```
+
+Batch writers accept a cancellation token in `Start` and provide `StopAsync` to wait for shutdown. Writes run sequentially. Stopping cancels the delay and any active request; queued points remain for a subsequent start. Points already dequeued for an active request are not automatically retried because the server may have accepted them before cancellation. A writer must finish stopping before it can be restarted. Cancellation does not raise `OnError`.
+
+Existing calls that omit the token still compile. The changed method signatures require recompiling consumers and updating custom interface implementations and overrides to include the token; `IBatchWriter` implementations must also implement `StopAsync`. Local formatting, query building, and queue additions remain synchronous because they do not perform asynchronous I/O. The exposed Flux API retains the official client's async and cancellation contracts.
+
 InfluxDB is the data storage layer in [InfluxData](https://influxdata.com/)'s [TICK stack](https://influxdata.com/get-started/#whats-the-tick-stack) which is an open-source end-to-end platform for managing time-series data at scale.
 
 Kapacitor is a data processing engine. It can process both stream (subscribe realtime) and batch (bulk query) data from InfluxDB. Kapacitor lets you define custom logic to process alerts with dynamic thresholds, match metrics for patterns, compute statistical anomalies, etc.

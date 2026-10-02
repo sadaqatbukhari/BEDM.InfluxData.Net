@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+using System.Threading;
+using System.Net.Http;
 using System.Threading.Tasks;
 using InfluxData.Net.Common.Helpers;
 using InfluxData.Net.InfluxDb.Constants;
@@ -21,10 +22,10 @@ namespace InfluxData.Net.InfluxDb.ClientModules
             _diagnosticsResponseParser = diagnosticsResponseParser;
         }
 
-        public virtual async Task<Pong> PingAsync()
+        public virtual async Task<Pong> PingAsync(CancellationToken cancellationToken = default)
         {
             var watch = Stopwatch.StartNew();
-            var response = await base.RequestClient.RequestAsync(HttpMethod.Get, RequestPaths.Ping, includeAuthToQuery: false, headerIsBody: true).ConfigureAwait(false);
+            var response = await base.RequestClient.RequestAsync(HttpMethod.Get, RequestPaths.Ping, includeAuthToQuery: false, headerIsBody: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             watch.Stop();
 
@@ -38,19 +39,19 @@ namespace InfluxData.Net.InfluxDb.ClientModules
             return pong;
         }
 
-        public virtual async Task<Stats> GetStatsAsync()
+        public virtual async Task<Stats> GetStatsAsync(CancellationToken cancellationToken = default)
         {
             var query = _diagnosticsQueryBuilder.GetStats();
-            var series = await base.ResolveSingleGetSeriesResultAsync(query).ConfigureAwait(false);
+            var series = await base.ResolveSingleGetSeriesResultAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
             var stats = _diagnosticsResponseParser.GetStats(series);
 
             return stats;
         }
 
-        public virtual async Task<Diagnostics> GetDiagnosticsAsync()
+        public virtual async Task<Diagnostics> GetDiagnosticsAsync(CancellationToken cancellationToken = default)
         {
             var query = _diagnosticsQueryBuilder.GetDiagnostics();
-            var series = await base.ResolveSingleGetSeriesResultAsync(query).ConfigureAwait(false);
+            var series = await base.ResolveSingleGetSeriesResultAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
             var diagnostics = _diagnosticsResponseParser.GetDiagnostics(series);
 
             return diagnostics;

@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using InfluxData.Net.InfluxDb.Models;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using InfluxData.Net.Common.Constants;
 
 namespace InfluxData.Net.InfluxDb.ClientSubModules
@@ -21,7 +23,7 @@ namespace InfluxData.Net.InfluxDb.ClientSubModules
         /// <param param name="continueOnError">Should continue running on write error? (defaults to false)</param>
         /// <param name="maxPointsPerBatch">Max batch point count (long max by default)</param>
         /// </summary>
-        void Start(int interval = 1000, bool continueOnError = false, long maxPointsPerBatch = long.MaxValue);
+        void Start(int interval = 1000, bool continueOnError = false, long maxPointsPerBatch = long.MaxValue, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Adds a single point to the BatchWriter points collection (uses BlockingCollection 
@@ -43,6 +45,9 @@ namespace InfluxData.Net.InfluxDb.ClientSubModules
         /// Stops the batch writer.
         /// </summary>
         void Stop();
+
+        /// <summary>Stops the writer and awaits completion of its background loop.</summary>
+        Task StopAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Sets the maximum size (point count) of a batch to commit to InfluxDB. If the collection currently 

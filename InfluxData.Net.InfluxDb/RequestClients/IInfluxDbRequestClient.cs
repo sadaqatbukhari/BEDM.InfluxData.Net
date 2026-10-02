@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Threading;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using InfluxData.Net.Common.Infrastructure;
@@ -22,7 +23,7 @@ namespace InfluxData.Net.InfluxDb.RequestClients
         /// <param name="epochFormat">Epoch timestamp format. (OPTIONAL)</param>
         /// <param name="chunkSize">Maximum number of rows per chunk. (OPTIONAL)</param>
         /// <returns></returns>
-        Task<IInfluxDataApiResponse> GetQueryAsync(string query, string dbName = null, string epochFormat = null, long? chunkSize = null);
+        Task<IInfluxDataApiResponse> GetQueryAsync(string query, string dbName = null, string epochFormat = null, long? chunkSize = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes a POST query against the InfluxDb API in a single request. Multiple queries can be 
@@ -32,14 +33,14 @@ namespace InfluxData.Net.InfluxDb.RequestClients
         /// <a href="https://influxdb.com/docs/v0.9/concepts/reading_and_writing_data.html">InfluxDb documentation</a>.</param>
         /// <param name="dbName">Database name.</param>
         /// <returns></returns>
-        Task<IInfluxDataApiResponse> PostQueryAsync(string query, string dbName = null);
+        Task<IInfluxDataApiResponse> PostQueryAsync(string query, string dbName = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Writes series to the database based on <see cref="{WriteRequest}"/> object.
         /// </summary>
         /// <param name="dbName"><see cref="{WriteRequest}"/> object that describes the data to write.</param>
         /// <returns></returns>
-        Task<IInfluxDataApiResponse> PostAsync(WriteRequest writeRequest);
+        Task<IInfluxDataApiResponse> PostAsync(WriteRequest writeRequest, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes a query against the InfluxDb API in a single request. Multiple queries can be 
@@ -53,7 +54,7 @@ namespace InfluxData.Net.InfluxDb.RequestClients
         /// /// <param name="epochFormat">Epoch timestamp format. (OPTIONAL)</param>
         /// <param name="chunkSize">Maximum number of rows per chunk. (OPTIONAL)</param>
         /// <returns></returns>
-        Task<IInfluxDataApiResponse> QueryAsync(string query, HttpMethod method, string dbName = null, string epochFormat = null, long? chunkSize = null);
+        Task<IInfluxDataApiResponse> QueryAsync(string query, HttpMethod method, string dbName = null, string epochFormat = null, long? chunkSize = null, CancellationToken cancellationToken = default);
 
         IPointFormatter GetPointFormatter();
 
@@ -63,7 +64,7 @@ namespace InfluxData.Net.InfluxDb.RequestClients
             IDictionary<string, string> requestParams = null,
             HttpContent content = null,
             bool includeAuthToQuery = true,
-            bool headerIsBody = false);
+            bool headerIsBody = false, CancellationToken cancellationToken = default);
 
     }
 }

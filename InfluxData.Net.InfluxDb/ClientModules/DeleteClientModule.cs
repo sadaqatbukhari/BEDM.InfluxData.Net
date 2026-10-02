@@ -1,3 +1,4 @@
+using System.Threading;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -33,7 +34,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
 
         public virtual async Task<IInfluxDataApiResponse> DeleteAsync(
             DeleteRequest request,
-            string authorizationToken = null)
+            string authorizationToken = null, CancellationToken cancellationToken = default)
         {
             ValidateRequest(request);
 
@@ -68,7 +69,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
                 content,
                 false,
                 false,
-                headers).ConfigureAwait(false);
+                headers, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return new InfluxDataApiDeleteResponse(response.StatusCode, response.Body);
         }

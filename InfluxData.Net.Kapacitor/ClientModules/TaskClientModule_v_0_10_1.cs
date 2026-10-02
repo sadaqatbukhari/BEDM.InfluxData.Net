@@ -1,4 +1,5 @@
-﻿using System;
+using System.Threading;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using InfluxData.Net.Common.Infrastructure;
@@ -17,31 +18,31 @@ namespace InfluxData.Net.Kapacitor.ClientModules
         {
         }
 
-        public virtual async Task<KapacitorTask> GetTaskAsync(string taskName)
+        public virtual async Task<KapacitorTask> GetTaskAsync(string taskName, CancellationToken cancellationToken = default)
         {
             var requestParams = new Dictionary<string, string>
             {
                 { QueryParams.Name, Uri.EscapeDataString(taskName) }
             };
-            var response = await base.RequestClient.GetAsync(RequestPaths.Task, requestParams).ConfigureAwait(false);
+            var response = await base.RequestClient.GetAsync(RequestPaths.Task, requestParams, cancellationToken: cancellationToken).ConfigureAwait(false);
             var task = response.ReadAs<KapacitorTask>();
 
             return task;
         }
 
-        public virtual async Task<IEnumerable<KapacitorTask>> GetTasksAsync()
+        public virtual async Task<IEnumerable<KapacitorTask>> GetTasksAsync(CancellationToken cancellationToken = default)
         {
             var requestParams = new Dictionary<string, string>
             {
                 { QueryParams.Tasks, String.Empty }
             };
-            var response = await base.RequestClient.GetAsync(RequestPaths.Tasks, requestParams).ConfigureAwait(false);
+            var response = await base.RequestClient.GetAsync(RequestPaths.Tasks, requestParams, cancellationToken: cancellationToken).ConfigureAwait(false);
             var tasks = response.ReadAs<KapacitorTasks>();
 
             return tasks.Tasks;
         }
 
-        public virtual async Task<IInfluxDataApiResponse> DefineTaskAsync(DefineTaskParams taskParams)
+        public virtual async Task<IInfluxDataApiResponse> DefineTaskAsync(DefineTaskParams taskParams, CancellationToken cancellationToken = default)
         {
             var dbrps = String.Format("[{{\"{0}\":\"{1}\", \"{2}\":\"{3}\"}}]", 
                 QueryParams.Db, taskParams.DBRPsParams.DbName, QueryParams.RetentionPolicy, taskParams.DBRPsParams.RetentionPolicy);
@@ -53,44 +54,44 @@ namespace InfluxData.Net.Kapacitor.ClientModules
                 { QueryParams.Dbrps, Uri.EscapeDataString(dbrps) }
             };
 
-            return await base.RequestClient.PostAsync(RequestPaths.Task, requestParams, taskParams.TickScript).ConfigureAwait(false);
+            return await base.RequestClient.PostAsync(RequestPaths.Task, requestParams, taskParams.TickScript, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        public virtual async Task<IInfluxDataApiResponse> DefineTaskAsync(DefineTemplatedTaskParams taskParams)
+        public virtual async Task<IInfluxDataApiResponse> DefineTaskAsync(DefineTemplatedTaskParams taskParams, CancellationToken cancellationToken = default)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             throw new InvalidOperationException("Method not applicable to this version of InfluxDB");
         }
 
-        public virtual async Task<IInfluxDataApiResponse> DeleteTaskAsync(string taskName)
+        public virtual async Task<IInfluxDataApiResponse> DeleteTaskAsync(string taskName, CancellationToken cancellationToken = default)
         {
             var requestParams = new Dictionary<string, string>
             {
                 { QueryParams.Name, Uri.EscapeDataString(taskName) }
             };
 
-            return await base.RequestClient.DeleteAsync(RequestPaths.Task, requestParams).ConfigureAwait(false);
+            return await base.RequestClient.DeleteAsync(RequestPaths.Task, requestParams, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public virtual async Task<IInfluxDataApiResponse> EnableTaskAsync(string taskName)
+        public virtual async Task<IInfluxDataApiResponse> EnableTaskAsync(string taskName, CancellationToken cancellationToken = default)
         {
             var requestParams = new Dictionary<string, string>
             {
                 { QueryParams.Name, Uri.EscapeDataString(taskName) }
             };
 
-            return await base.RequestClient.PostAsync(RequestPaths.Enable, requestParams, String.Empty).ConfigureAwait(false);
+            return await base.RequestClient.PostAsync(RequestPaths.Enable, requestParams, String.Empty, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public virtual async Task<IInfluxDataApiResponse> DisableTaskAsync(string taskName)
+        public virtual async Task<IInfluxDataApiResponse> DisableTaskAsync(string taskName, CancellationToken cancellationToken = default)
         {
             var requestParams = new Dictionary<string, string>
             {
                 { QueryParams.Name, Uri.EscapeDataString(taskName) }
             };
 
-            return await base.RequestClient.PostAsync(RequestPaths.Disable, requestParams, String.Empty).ConfigureAwait(false);
+            return await base.RequestClient.PostAsync(RequestPaths.Disable, requestParams, String.Empty, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 }

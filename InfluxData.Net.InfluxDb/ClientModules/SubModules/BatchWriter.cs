@@ -3,6 +3,7 @@ using InfluxData.Net.InfluxDb.Models;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System;
+using System.Threading;
 using InfluxData.Net.InfluxDb.ClientModules;
 using InfluxData.Net.Common.Constants;
 
@@ -16,7 +17,10 @@ namespace InfluxData.Net.InfluxDb.ClientSubModules
         private string _precision;
         private int _interval;
         private bool _continueOnError;
-        private bool _isRunning;
+        private volatile bool _isRunning;
+        private readonly object _lifecycleLock = new object();
+        private CancellationTokenSource _runCancellation;
+        private Task _runTask = Task.CompletedTask;
         private long _maxPointsPerBatch;
 
         /// <summary>
@@ -62,19 +66,26 @@ namespace InfluxData.Net.InfluxDb.ClientSubModules
         /// <param param name="continueOnError">Should continue running on write error? (defaults to false)</param>
         /// <param name="maxPointsPerBatch">Max batch point count (long max by default).</param>
         /// </summary>
-        public virtual void Start(int interval = 1000, bool continueOnError = false, long maxPointsPerBatch = long.MaxValue)
+        public virtual void Start(int interval = 1000, bool continueOnError = false, long maxPointsPerBatch = long.MaxValue, CancellationToken cancellationToken = default)
         {
             if (interval <= 0)
                 throw new ArgumentException("Interval must be a positive value (milliseconds)");
 
-            _continueOnError = continueOnError;
-
-            _interval = interval;
-            _isRunning = true;
-            _maxPointsPerBatch = maxPointsPerBatch;
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            this.EnqueueBatchWritingAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            if (maxPointsPerBatch <= 0)
+                throw new ArgumentOutOfRangeException(nameof(maxPointsPerBatch));
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (_lifecycleLock)
+            {
+                if (!_runTask.IsCompleted)
+                    throw new InvalidOperationException("The batch writer is already running or stopping.");
+                _runCancellation?.Dispose();
+                _runCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                _continueOnError = continueOnError;
+                _interval = interval;
+                _isRunning = true;
+                _maxPointsPerBatch = maxPointsPerBatch;
+                _runTask = this.EnqueueBatchWritingAsync();
+            }
         }
 
         /// <summary>
@@ -107,7 +118,24 @@ namespace InfluxData.Net.InfluxDb.ClientSubModules
         /// </summary>
         public virtual void Stop()
         {
-            _isRunning = false;
+            lock (_lifecycleLock)
+            {
+                _isRunning = false;
+                _runCancellation?.Cancel();
+            }
+        }
+
+        /// <summary>Stops the writer and waits for the active write to finish cancelling.
+        /// Queued points remain available for a subsequent start.</summary>
+        public virtual async Task StopAsync(CancellationToken cancellationToken = default)
+        {
+            Task runTask;
+            lock (_lifecycleLock)
+            {
+                Stop();
+                runTask = _runTask;
+            }
+            await runTask.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -117,6 +145,8 @@ namespace InfluxData.Net.InfluxDb.ClientSubModules
         /// <param name="pointCount">Max batch point count (long max by default).</param>
         public void SetMaxBatchSize(long pointCount)
         {
+            if (pointCount <= 0)
+                throw new ArgumentOutOfRangeException(nameof(pointCount));
             _maxPointsPerBatch = pointCount;
         }
 
@@ -127,14 +157,24 @@ namespace InfluxData.Net.InfluxDb.ClientSubModules
         /// <returns>Task.</returns>
         protected virtual async Task EnqueueBatchWritingAsync()
         {
-            if (!_isRunning)
-                return;
-
-            await Task.Delay(_interval).ConfigureAwait(false);
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            this.WriteBatchedPointsAsync();
-            this.EnqueueBatchWritingAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            var cancellationToken = _runCancellation.Token;
+            try
+            {
+                while (_isRunning)
+                {
+                    await Task.Delay(_interval, cancellationToken).ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await this.WriteBatchedPointsAsync().ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // Cancellation is an expected shutdown, not a write error.
+            }
+            finally
+            {
+                _isRunning = false;
+            }
         }
 
         /// <summary>
@@ -165,10 +205,19 @@ namespace InfluxData.Net.InfluxDb.ClientSubModules
 
             if (points.Count > 0)
             {
-                await _basicClientModule.WriteAsync(points, _dbName, _retentionPolicy, _precision).ContinueWith(p =>
+                try
                 {
-                    RaiseError(p.Exception);
-                }, TaskContinuationOptions.OnlyOnFaulted).ConfigureAwait(false);
+                    await _basicClientModule.WriteAsync(points, _dbName, _retentionPolicy, _precision,
+                        _runCancellation.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (_runCancellation.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    RaiseError(exception);
+                }
             }
         }
 

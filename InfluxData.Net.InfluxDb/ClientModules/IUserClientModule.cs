@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using InfluxData.Net.InfluxDb.Enums;
 using InfluxData.Net.Common.Infrastructure;
@@ -12,7 +13,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// Gets all available users.
         /// </summary>
         /// <returns>A collection of all users.</returns>
-        Task<IEnumerable<User>> GetUsersAsync();
+        Task<IEnumerable<User>> GetUsersAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates a new InfluxDB user with the given user name, password, and admin privileges.
@@ -21,14 +22,14 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="password">The user's password.</param>
         /// <param name="isAdmin">Whether or not to make the user an administrator.</param>
         /// <returns>The query response.</returns>
-        Task<IInfluxDataApiResponse> CreateUserAsync(string username, string password, bool isAdmin = false);
+        Task<IInfluxDataApiResponse> CreateUserAsync(string username, string password, bool isAdmin = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Drops an existing InfluxDB user with the given user name.
         /// </summary>
         /// <param name="username">The user's name.</param>
         /// <returns>The query response.</returns>
-        Task<IInfluxDataApiResponse> DropUserAsync(string username);
+        Task<IInfluxDataApiResponse> DropUserAsync(string username, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Sets a user's password.
@@ -36,27 +37,27 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="username">The user's name.</param>
         /// <param name="password">The password to set.</param>
         /// <returns>The query response.</returns>
-        Task<IInfluxDataApiResponse> SetPasswordAsync(string username, string password);
+        Task<IInfluxDataApiResponse> SetPasswordAsync(string username, string password, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets a list of granted database privileges for a user.
         /// </summary>
         /// <param name="username">The name of the user to get granted privilges for.</param>
-        Task<IEnumerable<Grant>> GetPrivilegesAsync(string username);
+        Task<IEnumerable<Grant>> GetPrivilegesAsync(string username, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Grants a user administrator privileges.
         /// </summary>
         /// <param name="username">The user's name.</param>
         /// <returns>The query response.</returns>
-        Task<IInfluxDataApiResponse> GrantAdministratorAsync(string username);
+        Task<IInfluxDataApiResponse> GrantAdministratorAsync(string username, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Revokes administrator privileges from a user.
         /// </summary>
         /// <param name="username">The user's name.</param>
         /// <returns>The query response.</returns>
-        Task<IInfluxDataApiResponse> RevokeAdministratorAsync(string username);
+        Task<IInfluxDataApiResponse> RevokeAdministratorAsync(string username, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Grants a privilege to a user for a given database.
@@ -65,7 +66,7 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="privilege">The privilege to grant.</param>
         /// <param name="dbName">The name of the database the privilege is for.</param>
         /// <returns>The query response.</returns>
-        Task<IInfluxDataApiResponse> GrantPrivilegeAsync(string username, Privileges privilege, string dbName);
+        Task<IInfluxDataApiResponse> GrantPrivilegeAsync(string username, Privileges privilege, string dbName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Revokes a privilege from a user for a given database.
@@ -74,6 +75,6 @@ namespace InfluxData.Net.InfluxDb.ClientModules
         /// <param name="privilege">The privilege to revoke.</param>
         /// <param name="dbName">The name of the database the privilege should be revoked from.</param>
         /// <returns>The query response.</returns>
-        Task<IInfluxDataApiResponse> RevokePrivilegeAsync(string username, Privileges privilege, string dbName);
+        Task<IInfluxDataApiResponse> RevokePrivilegeAsync(string username, Privileges privilege, string dbName, CancellationToken cancellationToken = default);
     }
 }

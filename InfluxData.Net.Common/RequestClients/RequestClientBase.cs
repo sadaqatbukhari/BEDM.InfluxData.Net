@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -11,13 +11,6 @@ using InfluxData.Net.Common.Infrastructure;
 using System.Diagnostics;
 using InfluxData.Net.Common.Helpers;
 
-
-#if DEBUG
-
-using InfluxData.Net.Common.Helpers;
-using System.Diagnostics;
-
-#endif
 
 namespace InfluxData.Net.Common.RequestClients
 {
@@ -51,7 +44,8 @@ namespace InfluxData.Net.Common.RequestClients
             IDictionary<string, string> requestParams = null,
             HttpContent content = null,
             bool includeAuthToQuery = true,
-            bool headerIsBody = false)
+            bool headerIsBody = false,
+            CancellationToken cancellationToken = default)
         {
             return RequestWithHeadersAsync(
                 method,
@@ -60,7 +54,8 @@ namespace InfluxData.Net.Common.RequestClients
                 content,
                 includeAuthToQuery,
                 headerIsBody,
-                null);
+                null,
+                cancellationToken);
         }
 
         public async Task<IInfluxDataApiResponse> RequestWithHeadersAsync(
@@ -70,11 +65,12 @@ namespace InfluxData.Net.Common.RequestClients
             HttpContent content,
             bool includeAuthToQuery,
             bool headerIsBody,
-            IDictionary<string, string> requestHeaders)
+            IDictionary<string, string> requestHeaders,
+            CancellationToken cancellationToken = default)
         {
-            var response = await RequestInnerAsync(
+            using var response = await RequestInnerAsync(
                 HttpCompletionOption.ResponseHeadersRead,
-                CancellationToken.None,
+                cancellationToken,
                 method,
                 path,
                 requestParams,
@@ -86,7 +82,7 @@ namespace InfluxData.Net.Common.RequestClients
 
             if (!headerIsBody)
             {
-                responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                responseContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -122,14 +118,15 @@ namespace InfluxData.Net.Common.RequestClients
             bool includeAuthToQuery = true,
             IDictionary<string, string> requestHeaders = null)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var uri = BuildUri(path, extraParams, includeAuthToQuery);
-            var request = BuildRequest(method, content, uri, requestHeaders);
+            using var request = BuildRequest(method, content, uri, requestHeaders);
 
 #if DEBUG
             Debug.WriteLine("[Request] {0}", request.ToJson());
             if (content != null)
             {
-                Debug.WriteLine("[RequestData] {0}", content.ReadAsStringAsync().Result);
+                Debug.WriteLine("[RequestData] {0}", await content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
             }
 #endif
 

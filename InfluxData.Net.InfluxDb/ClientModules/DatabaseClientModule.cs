@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using InfluxData.Net.Common.Infrastructure;
 using InfluxData.Net.InfluxDb.Models.Responses;
@@ -20,27 +21,27 @@ namespace InfluxData.Net.InfluxDb.ClientModules
             _databaseResponseParser = databaseResponseParser;
         }
 
-        public virtual async Task<IInfluxDataApiResponse> CreateDatabaseAsync(string dbName)
+        public virtual async Task<IInfluxDataApiResponse> CreateDatabaseAsync(string dbName, CancellationToken cancellationToken = default)
         {
             var query = _databaseQueryBuilder.CreateDatabase(dbName);
-            var response = await base.PostAndValidateQueryAsync(query).ConfigureAwait(false);
+            var response = await base.PostAndValidateQueryAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return response;
         }
 
-        public virtual async Task<IEnumerable<Database>> GetDatabasesAsync()
+        public virtual async Task<IEnumerable<Database>> GetDatabasesAsync(CancellationToken cancellationToken = default)
         {
             var query = _databaseQueryBuilder.GetDatabases();
-            var series = await base.ResolveSingleGetSeriesResultAsync(query).ConfigureAwait(false);
+            var series = await base.ResolveSingleGetSeriesResultAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
             var databases = _databaseResponseParser.GetDatabases(series);
 
             return databases;
         }
 
-        public virtual async Task<IInfluxDataApiResponse> DropDatabaseAsync(string dbName)
+        public virtual async Task<IInfluxDataApiResponse> DropDatabaseAsync(string dbName, CancellationToken cancellationToken = default)
         {
             var query = _databaseQueryBuilder.DropDatabase(dbName);
-            var response = await base.PostAndValidateQueryAsync(query).ConfigureAwait(false);
+            var response = await base.PostAndValidateQueryAsync(query, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return response;
         }
